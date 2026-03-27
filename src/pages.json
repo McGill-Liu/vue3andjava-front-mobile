@@ -1,0 +1,19 @@
+{
+  "pages": [
+    { "path": "pages/login/index", "style": { "navigationBarTitleText": "Login" } },
+    { "path": "pages/mall/index", "style": { "navigationBarTitleText": "Mall" } },
+    { "path": "pages/cart/index", "style": { "navigationBarTitleText": "Cart" } },
+    { "path": "pages/orders/index", "style": { "navigationBarTitleText": "Orders" } },
+    { "path": "pages/address/index", "style": { "navigationBarTitleText": "Address" } },
+    { "path": "pages/profile/index", "style": { "navigationBarTitleText": "Profile" } },
+    { "path": "pages/register/index", "style": { "navigationBarTitleText": "Register" } },
+    { "path": "pages/detail/index", "style": { "navigationBarTitleText": "Product" } },
+    { "path": "pages/checkout/index", "style": { "navigationBarTitleText": "Checkout" } },
+    { "path": "pages/password/index", "style": { "navigationBarTitleText": "Password" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f7fb"
+  }
+}
