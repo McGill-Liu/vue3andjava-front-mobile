@@ -1,6 +1,7 @@
 import { clearProfile } from './auth'
+import { API_BASE_URL } from '../../api.config'
 
-const baseURL = 'http://10.238.139.189:8080/api'
+const baseURL = API_BASE_URL
 
 let redirecting = false
 

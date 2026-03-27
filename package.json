@@ -4,8 +4,6 @@
   "private": true,
   "description": "uni-app Vue 3 mobile mini program",
   "scripts": {
-    "dev:h5": "vite",
-    "build:h5": "vite build",
     "dev:mp-weixin": "uni -p mp-weixin",
     "build:mp-weixin": "uni build -p mp-weixin"
   },
@@ -17,10 +15,5 @@
     "@vue/server-renderer": "3.4.21",
     "@vue/shared": "3.4.21",
     "vue": "3.4.21"
-  },
-  "devDependencies": {
-    "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000520260323001",
-    "@vitejs/plugin-vue": "5.2.4",
-    "vite": "5.2.8"
   }
 }
