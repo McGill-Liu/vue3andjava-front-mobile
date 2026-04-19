@@ -1,10 +1,12 @@
 <script>
+import { APP_VERSION } from '../../config/app'
 import { clearProfile, exitGuest, getProfile, isGuest } from '../../utils/auth'
 import { hidePageLoading, showPageLoading } from '../../utils/loading'
 
 export default {
   data() {
     return {
+      appVersion: APP_VERSION,
       profile: {},
       guestMode: false,
       tabItems: [
@@ -95,6 +97,8 @@ export default {
         </view>
         <button class="copy-btn" @click="copyWechat">点击复制微信号</button>
       </view>
+
+      <view class="version-text">当前版本 v{{ appVersion }}</view>
     </view>
 
     <view class="tabbar-shell">
@@ -208,6 +212,12 @@ export default {
 .notice-text {
   font-size: 24rpx;
   font-weight: 700;
+}
+
+.version-text {
+  text-align: right;
+  font-size: 20rpx;
+  color: #64748b;
 }
 
 .copy-btn {

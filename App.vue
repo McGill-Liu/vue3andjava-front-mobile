@@ -1,16 +1,54 @@
 <script>
+import { APP_VERSION } from './src/config/app'
 import { hidePageLoading, showPageLoading } from './src/utils/loading'
 
 export default {
   onLaunch() {
     showPageLoading('启动中')
+    this.checkForMiniProgramUpdate()
   },
   onShow() {
     setTimeout(() => {
       hidePageLoading()
     }, 250)
   },
-  onHide() {}
+  onHide() {},
+  methods: {
+    checkForMiniProgramUpdate() {
+      // Only WeChat mini programs support the native update manager.
+      // It prompts users to restart after a newly uploaded build is ready.
+      // #ifdef MP-WEIXIN
+      if (typeof wx === 'undefined' || !wx.canIUse('getUpdateManager')) {
+        return
+      }
+
+      const updateManager = wx.getUpdateManager()
+
+      updateManager.onCheckForUpdate(() => {})
+
+      updateManager.onUpdateReady(() => {
+        uni.showModal({
+          title: '发现新版本',
+          content: `当前版本 ${APP_VERSION} 已有更新，是否立即重启小程序？`,
+          confirmText: '立即更新',
+          cancelText: '稍后',
+          success: (res) => {
+            if (res.confirm) {
+              updateManager.applyUpdate()
+            }
+          }
+        })
+      })
+
+      updateManager.onUpdateFailed(() => {
+        uni.showToast({
+          title: '新版本下载失败，请稍后重试',
+          icon: 'none'
+        })
+      })
+      // #endif
+    }
+  }
 }
 </script>
 

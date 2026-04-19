@@ -1,6 +1,6 @@
 {
   "name": "points-mall-mobile",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "uni-app Vue 3 mobile mini program",
   "scripts": {
