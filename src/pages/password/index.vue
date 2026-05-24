@@ -1,30 +1,39 @@
 <script>
-import { getProfile } from '../../utils/auth'
 import { request } from '../../utils/request'
 
 export default {
   data() {
     return {
       form: {
-        phone: '',
-        idCardNo: '',
         oldPassword: '',
-        newPassword: ''
+        newPassword: '',
+        confirmPassword: ''
       }
     }
-  },
-  onShow() {
-    const profile = getProfile() || {}
-    this.form.phone = profile.phone || ''
   },
   methods: {
     async submit() {
       try {
-        await request({ url: '/auth/change-password', method: 'POST', data: this.form })
+        if (!/^[A-Za-z0-9]{6,}$/.test(this.form.newPassword)) {
+          uni.showToast({ title: '新密码至少 6 位，仅支持数字和英文字母', icon: 'none' })
+          return
+        }
+        if (this.form.newPassword !== this.form.confirmPassword) {
+          uni.showToast({ title: '两次输入的新密码不一致', icon: 'none' })
+          return
+        }
+        await request({
+          url: '/auth/change-password',
+          method: 'POST',
+          data: {
+            oldPassword: this.form.oldPassword,
+            newPassword: this.form.newPassword
+          }
+        })
         uni.showToast({ title: '修改成功', icon: 'success' })
-        this.form.idCardNo = ''
         this.form.oldPassword = ''
         this.form.newPassword = ''
+        this.form.confirmPassword = ''
       } catch (error) {
         uni.showToast({ title: error.message, icon: 'none' })
       }
@@ -37,11 +46,10 @@ export default {
   <view class="page-shell">
     <view class="card">
       <view class="section-title">修改密码</view>
-      <view class="helper-text">请填写原密码、手机号和身份证号，再设置新的登录密码。</view>
-      <input v-model="form.phone" class="input" placeholder="手机号" />
-      <input v-model="form.idCardNo" class="input" placeholder="身份证号" />
+      <view class="helper-text">请输入原密码，并连续输入两次新密码。新密码至少 6 位，仅支持数字和英文字母。</view>
       <input v-model="form.oldPassword" class="input" password placeholder="原密码" />
       <input v-model="form.newPassword" class="input" password placeholder="新密码" />
+      <input v-model="form.confirmPassword" class="input" password placeholder="确认新密码" />
       <button class="primary-btn" @click="submit">确认修改</button>
     </view>
   </view>
@@ -69,7 +77,7 @@ export default {
   height: 72rpx;
   line-height: 72rpx;
   border-radius: 999rpx;
-  background: #2563eb;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: #fff;
   font-size: 24rpx;
 }

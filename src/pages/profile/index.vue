@@ -185,8 +185,8 @@ export default {
 }
 
 .action-btn.light {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
 }
 
 .action-btn.dark {
@@ -240,8 +240,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 104rpx;
-  padding: 12rpx 12rpx 18rpx;
+  height: 118rpx;
+  padding: 14rpx 14rpx 24rpx;
   box-sizing: border-box;
   background: #ffffff;
   border-top: 1rpx solid #e2e8f0;
@@ -252,8 +252,8 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 58rpx;
-  margin: 0 4rpx;
+  height: 68rpx;
+  margin: 0 6rpx;
   border-radius: 999rpx;
 }
 
@@ -266,9 +266,9 @@ export default {
 }
 
 .tab-text {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: #64748b;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .tab-item.active .tab-text {

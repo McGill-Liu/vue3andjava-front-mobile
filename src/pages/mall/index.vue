@@ -3,11 +3,12 @@ import { getCartQuantity, setCartQuantity } from '../../utils/cart'
 import { getProfile, isGuest, exitGuest } from '../../utils/auth'
 import { hidePageLoading, showPageLoading } from '../../utils/loading'
 import { request } from '../../utils/request'
+import { productImageUrl } from '../../utils/image'
 
 export default {
   data() {
     return {
-      categories: [],
+      categories: [{ id: 0, name: '全部' }],
       products: [],
       activeCategory: null,
       keyword: '',
@@ -26,7 +27,7 @@ export default {
     hidePageLoading()
     this.guestMode = isGuest() || !getProfile()
     this.syncCartMap()
-    if (!this.categories.length) {
+    if (this.categories.length <= 1) {
       this.loadCategories().then(() => {
         this.loadProducts()
       })
@@ -55,17 +56,24 @@ export default {
       uni.reLaunch({ url: item.url })
     },
     async loadCategories() {
-      this.categories = await request({ url: '/categories', auth: false })
-      if (this.categories.length && !this.activeCategory) {
-        this.activeCategory = this.categories[0].id
+      const remoteCategories = await request({ url: '/categories', auth: !this.guestMode })
+      this.categories = [{ id: 0, name: '全部' }, ...remoteCategories]
+      if (this.activeCategory === null) {
+        this.activeCategory = 0
       }
     },
     async loadProducts() {
       const query = []
       if (this.activeCategory) query.push(`categoryId=${this.activeCategory}`)
       if (this.keyword) query.push(`keyword=${this.keyword}`)
-      this.products = await request({ url: `/products${query.length ? `?${query.join('&')}` : ''}`, auth: false })
+      this.products = await request({ url: `/products${query.length ? `?${query.join('&')}` : ''}`, auth: !this.guestMode })
       this.syncCartMap()
+    },
+    coverImage(item) {
+      return productImageUrl(item.coverImageUrl)
+    },
+    clearFailedImage(item) {
+      item.coverImageUrl = ''
     },
     selectCategory(id) {
       this.activeCategory = id
@@ -117,7 +125,8 @@ export default {
       <view class="product-wrap">
         <scroll-view scroll-y class="product-pane" enhanced="true" show-scrollbar="false">
           <view v-for="item in products" :key="item.id" class="product-card" @click="openDetail(item)">
-            <image :src="item.coverImageUrl" class="product-cover" mode="aspectFill" />
+            <image v-if="item.coverImageUrl" :src="coverImage(item)" class="product-cover" mode="aspectFill" @error="clearFailedImage(item)" />
+            <view v-else class="product-cover image-placeholder">暂无图片</view>
             <view class="product-body">
               <view class="product-name">{{ item.name }}</view>
               <view v-if="!guestMode" class="product-meta">
@@ -260,6 +269,15 @@ export default {
   border-radius: 16rpx;
 }
 
+.image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #94a3b8;
+  font-size: 19rpx;
+}
+
 .product-body {
   flex: 1;
   min-width: 0;
@@ -338,8 +356,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 104rpx;
-  padding: 12rpx 12rpx 18rpx;
+  height: 118rpx;
+  padding: 14rpx 14rpx 24rpx;
   box-sizing: border-box;
   background: #ffffff;
   border-top: 1rpx solid #e2e8f0;
@@ -350,8 +368,8 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 58rpx;
-  margin: 0 4rpx;
+  height: 68rpx;
+  margin: 0 6rpx;
   border-radius: 999rpx;
 }
 
@@ -364,9 +382,9 @@ export default {
 }
 
 .tab-text {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: #64748b;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .tab-item.active .tab-text {

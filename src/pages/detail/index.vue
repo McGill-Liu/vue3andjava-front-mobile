@@ -1,7 +1,8 @@
 <script>
 import { setCartQuantity, getCartQuantity } from '../../utils/cart'
-import { isGuest } from '../../utils/auth'
+import { getProfile, isGuest } from '../../utils/auth'
 import { request } from '../../utils/request'
+import { productImageUrl } from '../../utils/image'
 
 export default {
   data() {
@@ -12,13 +13,19 @@ export default {
     }
   },
   onLoad(options) {
-    this.guestMode = isGuest()
+    this.guestMode = isGuest() || !getProfile()
     this.loadProduct(options.id)
   },
   methods: {
     async loadProduct(id) {
-      this.product = await request({ url: `/products/${id}`, auth: false })
+      this.product = await request({ url: `/products/${id}`, auth: !this.guestMode })
       this.quantity = getCartQuantity(this.product.id)
+    },
+    coverImage() {
+      return productImageUrl(this.product.coverImageUrl)
+    },
+    clearFailedImage() {
+      this.product.coverImageUrl = ''
     },
     plus() {
       setCartQuantity(this.product, this.quantity + 1)
@@ -39,7 +46,8 @@ export default {
 <template>
   <view v-if="product" class="page-shell">
     <view class="card">
-      <image :src="product.coverImageUrl" class="cover" mode="aspectFill" />
+      <image v-if="product.coverImageUrl" :src="coverImage()" class="cover" mode="aspectFill" @error="clearFailedImage" />
+      <view v-else class="cover image-placeholder">暂无图片</view>
       <view class="section-title">{{ product.name }}</view>
       <view v-if="!guestMode" class="meta">
         <text>{{ product.pointsCost }} 积分</text>
@@ -65,6 +73,15 @@ export default {
   height: 320rpx;
   border-radius: 18rpx;
   margin-bottom: 16rpx;
+}
+
+.image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #94a3b8;
+  font-size: 24rpx;
 }
 
 .desc {

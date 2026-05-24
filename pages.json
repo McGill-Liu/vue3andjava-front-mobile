@@ -6,7 +6,6 @@
     { "path": "src/pages/orders/index", "style": { "navigationBarTitleText": "Orders" } },
     { "path": "src/pages/address/index", "style": { "navigationBarTitleText": "Address" } },
     { "path": "src/pages/profile/index", "style": { "navigationBarTitleText": "Profile" } },
-    { "path": "src/pages/register/index", "style": { "navigationBarTitleText": "Register" } },
     { "path": "src/pages/detail/index", "style": { "navigationBarTitleText": "Product" } },
     { "path": "src/pages/checkout/index", "style": { "navigationBarTitleText": "Checkout" } },
     { "path": "src/pages/password/index", "style": { "navigationBarTitleText": "Password" } }

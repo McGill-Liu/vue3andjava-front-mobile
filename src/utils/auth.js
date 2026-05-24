@@ -16,6 +16,13 @@ export function getProfile() {
   return uni.getStorageSync('mobile_profile') || null
 }
 
+export function updatePointsBalance(pointsBalance) {
+  const profile = getProfile()
+  if (profile) {
+    uni.setStorageSync('mobile_profile', { ...profile, pointsBalance })
+  }
+}
+
 export function clearProfile() {
   uni.removeStorageSync('mobile_profile')
   uni.removeStorageSync('mobile_access_token')

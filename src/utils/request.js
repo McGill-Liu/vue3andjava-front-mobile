@@ -11,15 +11,20 @@ function handleExpiredLogin(message) {
     return
   }
   redirecting = true
-  uni.showToast({
-    title: message || '登录已过期',
-    icon: 'none',
-    duration: 1800
+  uni.showModal({
+    title: '登录失效',
+    content: message || '登录超时，请重新登录',
+    showCancel: false,
+    success: () => {
+      uni.reLaunch({ url: '/src/pages/login/index' })
+      redirecting = false
+    }
   })
   setTimeout(() => {
+    if (!redirecting) return
     uni.reLaunch({ url: '/src/pages/login/index' })
     redirecting = false
-  }, 400)
+  }, 3000)
 }
 
 export function request({ url, method = 'GET', data, auth = true }) {
@@ -39,8 +44,8 @@ export function request({ url, method = 'GET', data, auth = true }) {
       header: headers,
       success: ({ statusCode, data: res }) => {
         if (statusCode === 401) {
-          handleExpiredLogin('登录已过期，请重新登录')
-          reject(new Error('登录已过期，请重新登录'))
+          handleExpiredLogin('登录超时，请重新登录')
+          reject(new Error('登录超时，请重新登录'))
           return
         }
         if (res && res.success) {

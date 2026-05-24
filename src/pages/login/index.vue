@@ -17,7 +17,8 @@ export default {
         phone: '',
         password: ''
       },
-      rememberPassword: false
+      rememberPassword: true,
+      passwordVisible: false
     }
   },
   onShow() {
@@ -32,6 +33,9 @@ export default {
   methods: {
     toggleRemember() {
       this.rememberPassword = !this.rememberPassword
+    },
+    togglePasswordVisible() {
+      this.passwordVisible = !this.passwordVisible
     },
     copyWechat() {
       uni.setClipboardData({
@@ -63,9 +67,6 @@ export default {
         uni.showToast({ title: error.message, icon: 'none' })
       }
     },
-    goRegister() {
-      uni.navigateTo({ url: '/src/pages/register/index' })
-    },
     guestBrowse() {
       enterGuest()
       showPageLoading()
@@ -79,10 +80,20 @@ export default {
   <view class="page-shell">
     <view class="card">
       <view class="section-title">积分商城登录</view>
-      <view class="sub-title">使用手机号和密码登录，审核通过后即可浏览并兑换商品。</view>
+      <view class="sub-title">使用手机号和密码登录，登录后即可浏览并兑换商品。</view>
 
       <input v-model="form.phone" class="input" placeholder="请输入手机号" />
-      <input v-model="form.password" class="input" password placeholder="请输入密码" />
+      <view class="password-row">
+        <input
+          v-model="form.password"
+          class="input password-input"
+          :password="!passwordVisible"
+          placeholder="请输入密码"
+        />
+        <text class="password-toggle" @click="togglePasswordVisible">
+          {{ passwordVisible ? '隐藏' : '显示' }}
+        </text>
+      </view>
 
       <view class="remember-row" @click="toggleRemember">
         <view class="remember-dot" :class="{ checked: rememberPassword }"></view>
@@ -90,8 +101,7 @@ export default {
       </view>
 
       <button class="primary-btn small-btn" @click="login">登录</button>
-      <button class="ghost-btn small-btn" @click="goRegister">注册</button>
-      <button class="ghost-btn small-btn" @click="guestBrowse">游客浏览</button>
+      <button class="ghost-btn small-btn" @click="guestBrowse">游客身份，仅浏览商品</button>
 
       <view class="support-box">
         <text>管理员微信：boss-wechat</text>
@@ -116,6 +126,27 @@ export default {
   padding: 0 18rpx;
   margin-bottom: 14rpx;
   font-size: 24rpx;
+}
+
+.password-row {
+  position: relative;
+}
+
+.password-input {
+  padding-right: 90rpx;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 0;
+  right: 18rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  color: #2563eb;
+  font-size: 22rpx;
 }
 
 .remember-row {
@@ -179,5 +210,10 @@ export default {
   background: #eff6ff;
   color: #1d4ed8;
   font-size: 20rpx;
+  border: none;
+}
+
+.copy-btn::after {
+  border: none;
 }
 </style>

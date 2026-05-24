@@ -1,5 +1,6 @@
 <script>
 import { clearCart, getCart } from '../../utils/cart'
+import { updatePointsBalance } from '../../utils/auth'
 import { request } from '../../utils/request'
 
 export default {
@@ -27,7 +28,7 @@ export default {
     },
     async submit() {
       try {
-        await request({
+        const order = await request({
           url: '/orders/checkout',
           method: 'POST',
           data: {
@@ -35,6 +36,7 @@ export default {
             items: this.cartItems.map((item) => ({ productId: item.productId, quantity: item.quantity }))
           }
         })
+        updatePointsBalance(order.balanceAfter)
         clearCart()
         uni.showModal({
           title: '下单成功',
