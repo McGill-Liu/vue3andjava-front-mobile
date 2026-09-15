@@ -1,10 +1,19 @@
 <script>
 import { APP_VERSION } from './src/config/app'
+import { clearRememberedLogin, getProfile, saveProfile, wasManuallyLoggedOut } from './src/utils/auth'
 import { hidePageLoading, showPageLoading } from './src/utils/loading'
+import { request } from './src/utils/request'
+import { WECHAT_OPEN_ID_LOGIN_ENABLED } from './api.config'
 
 export default {
   onLaunch() {
+    clearRememberedLogin()
     showPageLoading('启动中')
+    const profile = getProfile()
+    if (profile && profile.mustChangePassword) {
+      uni.reLaunch({ url: '/src/pages/password/index' })
+    }
+    this.tryWechatLogin(profile)
     this.checkForMiniProgramUpdate()
   },
   onShow() {
@@ -14,6 +23,28 @@ export default {
   },
   onHide() {},
   methods: {
+    tryWechatLogin(profile) {
+      if (profile || wasManuallyLoggedOut() || !WECHAT_OPEN_ID_LOGIN_ENABLED || typeof wx === 'undefined') {
+        return
+      }
+      wx.login({
+        success: async (result) => {
+          if (!result.code) return
+          try {
+            const data = await request({
+              url: '/auth/wechat-login',
+              method: 'POST',
+              data: { code: result.code },
+              auth: false
+            })
+            saveProfile(data)
+            uni.reLaunch({ url: '/src/pages/mall/index' })
+          } catch (_) {
+            // A customer who is not bound yet simply continues with password login.
+          }
+        }
+      })
+    },
     checkForMiniProgramUpdate() {
       // Only WeChat mini programs support the native update manager.
       // It prompts users to restart after a newly uploaded build is ready.

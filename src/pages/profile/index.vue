@@ -1,7 +1,8 @@
 <script>
 import { APP_VERSION } from '../../config/app'
-import { clearProfile, exitGuest, getProfile, isGuest } from '../../utils/auth'
+import { clearProfile, exitGuest, getProfile, isGuest, markManualLogout } from '../../utils/auth'
 import { hidePageLoading, showPageLoading } from '../../utils/loading'
+import { request } from '../../utils/request'
 
 export default {
   data() {
@@ -35,7 +36,26 @@ export default {
       uni.reLaunch({ url: item.url })
     },
     logout() {
+      uni.showModal({
+        title: '退出登录',
+        content: '确认退出当前账号吗？',
+        confirmText: '确认退出',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            this.confirmLogout()
+          }
+        }
+      })
+    },
+    async confirmLogout() {
       showPageLoading()
+      try {
+        await request({ url: '/auth/logout', method: 'POST' })
+      } catch (_) {
+        // Always clear the local session, even if the server session already expired.
+      }
+      markManualLogout()
       clearProfile()
       exitGuest()
       uni.reLaunch({ url: '/src/pages/login/index' })

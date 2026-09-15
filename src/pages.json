@@ -7,7 +7,7 @@
     { "path": "pages/address/index", "style": { "navigationBarTitleText": "Address" } },
     { "path": "pages/profile/index", "style": { "navigationBarTitleText": "Profile" } },
     { "path": "pages/detail/index", "style": { "navigationBarTitleText": "Product" } },
-    { "path": "pages/checkout/index", "style": { "navigationBarTitleText": "Checkout" } },
+    { "path": "pages/checkout/index", "style": { "navigationBarTitleText": "请确认下单商品" } },
     { "path": "pages/password/index", "style": { "navigationBarTitleText": "Password" } }
   ],
   "globalStyle": {

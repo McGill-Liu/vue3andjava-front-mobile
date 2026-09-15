@@ -1,15 +1,12 @@
+const REMEMBERED_LOGIN_KEY = 'mobile_remembered_login'
+const LEGACY_SAVED_LOGIN_KEY = 'mobile_saved_login'
+const MANUAL_LOGOUT_KEY = 'mobile_manual_logout'
+
 export function saveProfile(profile) {
   uni.setStorageSync('mobile_profile', profile)
   uni.setStorageSync('mobile_access_token', profile.accessToken)
   uni.setStorageSync('mobile_refresh_token', profile.refreshToken)
-}
-
-export function saveRememberedLogin(payload) {
-  uni.setStorageSync('mobile_saved_login', payload)
-}
-
-export function getRememberedLogin() {
-  return uni.getStorageSync('mobile_saved_login') || null
+  uni.removeStorageSync(MANUAL_LOGOUT_KEY)
 }
 
 export function getProfile() {
@@ -30,7 +27,16 @@ export function clearProfile() {
 }
 
 export function clearRememberedLogin() {
-  uni.removeStorageSync('mobile_saved_login')
+  uni.removeStorageSync(REMEMBERED_LOGIN_KEY)
+  uni.removeStorageSync(LEGACY_SAVED_LOGIN_KEY)
+}
+
+export function markManualLogout() {
+  uni.setStorageSync(MANUAL_LOGOUT_KEY, '1')
+}
+
+export function wasManuallyLoggedOut() {
+  return uni.getStorageSync(MANUAL_LOGOUT_KEY) === '1'
 }
 
 export function isGuest() {

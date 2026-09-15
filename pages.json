@@ -1,14 +1,14 @@
 {
   "pages": [
-    { "path": "src/pages/login/index", "style": { "navigationBarTitleText": "Login" } },
-    { "path": "src/pages/mall/index", "style": { "navigationBarTitleText": "Mall" } },
-    { "path": "src/pages/cart/index", "style": { "navigationBarTitleText": "Cart" } },
-    { "path": "src/pages/orders/index", "style": { "navigationBarTitleText": "Orders" } },
-    { "path": "src/pages/address/index", "style": { "navigationBarTitleText": "Address" } },
-    { "path": "src/pages/profile/index", "style": { "navigationBarTitleText": "Profile" } },
-    { "path": "src/pages/detail/index", "style": { "navigationBarTitleText": "Product" } },
-    { "path": "src/pages/checkout/index", "style": { "navigationBarTitleText": "Checkout" } },
-    { "path": "src/pages/password/index", "style": { "navigationBarTitleText": "Password" } }
+    { "path": "src/pages/login/index", "style": { "navigationBarTitleText": "积分商城登录" } },
+    { "path": "src/pages/mall/index", "style": { "navigationBarTitleText": "积分商城" } },
+    { "path": "src/pages/cart/index", "style": { "navigationBarTitleText": "购物车" } },
+    { "path": "src/pages/orders/index", "style": { "navigationBarTitleText": "我的订单" } },
+    { "path": "src/pages/address/index", "style": { "navigationBarTitleText": "收货地址" } },
+    { "path": "src/pages/profile/index", "style": { "navigationBarTitleText": "个人中心" } },
+    { "path": "src/pages/detail/index", "style": { "navigationBarTitleText": "商品详情" } },
+    { "path": "src/pages/checkout/index", "style": { "navigationBarTitleText": "确认订单" } },
+    { "path": "src/pages/password/index", "style": { "navigationBarTitleText": "修改密码" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

@@ -2,7 +2,7 @@
   "libVersion": "2.31.0",
   "projectname": "vue3andjava-front-mobile",
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "coverView": true,
     "lazyloadPlaceholderEnable": false,
     "skylineRenderEnable": false,

@@ -1,8 +1,7 @@
 <script>
-import { getCartQuantity, setCartQuantity } from '../../utils/cart'
 import { getProfile, isGuest, exitGuest } from '../../utils/auth'
 import { hidePageLoading, showPageLoading } from '../../utils/loading'
-import { request } from '../../utils/request'
+import { request, showRequestError } from '../../utils/request'
 import { productImageUrl } from '../../utils/image'
 
 export default {
@@ -13,7 +12,7 @@ export default {
       activeCategory: null,
       keyword: '',
       guestMode: false,
-      cartMap: {},
+      refreshing: false,
       tabItems: [
         { key: 'mall', label: '商品', url: '/src/pages/mall/index' },
         { key: 'cart', label: '购物车', url: '/src/pages/cart/index' },
@@ -26,10 +25,9 @@ export default {
   onShow() {
     hidePageLoading()
     this.guestMode = isGuest() || !getProfile()
-    this.syncCartMap()
     if (this.categories.length <= 1) {
-      this.loadCategories().then(() => {
-        this.loadProducts()
+      this.loadCategories().then((loaded) => {
+        if (loaded) this.loadProducts()
       })
       return
     }
@@ -38,13 +36,6 @@ export default {
     }
   },
   methods: {
-    syncCartMap() {
-      const map = {}
-      this.products.forEach((item) => {
-        map[item.id] = getCartQuantity(item.id)
-      })
-      this.cartMap = map
-    },
     tabDisabled(item) {
       return this.guestMode && item.key !== 'mall'
     },
@@ -56,18 +47,41 @@ export default {
       uni.reLaunch({ url: item.url })
     },
     async loadCategories() {
-      const remoteCategories = await request({ url: '/categories', auth: !this.guestMode })
-      this.categories = [{ id: 0, name: '全部' }, ...remoteCategories]
-      if (this.activeCategory === null) {
-        this.activeCategory = 0
+      try {
+        const remoteCategories = await request({ url: '/categories', auth: !this.guestMode })
+        this.categories = [{ id: 0, name: '全部' }, ...remoteCategories]
+        if (this.activeCategory === null || !this.categories.some((item) => item.id === this.activeCategory)) {
+          this.activeCategory = 0
+        }
+        return true
+      } catch (error) {
+        showRequestError(error, '商品分类加载失败')
+        return false
       }
     },
     async loadProducts() {
-      const query = []
-      if (this.activeCategory) query.push(`categoryId=${this.activeCategory}`)
-      if (this.keyword) query.push(`keyword=${this.keyword}`)
-      this.products = await request({ url: `/products${query.length ? `?${query.join('&')}` : ''}`, auth: !this.guestMode })
-      this.syncCartMap()
+      try {
+        const query = []
+        if (this.activeCategory) query.push(`categoryId=${this.activeCategory}`)
+        if (this.keyword) query.push(`keyword=${this.keyword}`)
+        this.products = await request({ url: `/products${query.length ? `?${query.join('&')}` : ''}`, auth: !this.guestMode })
+        return true
+      } catch (error) {
+        showRequestError(error, '商品加载失败')
+        return false
+      }
+    },
+    async refreshProducts() {
+      if (this.guestMode || this.refreshing) return
+      this.refreshing = true
+      try {
+        const categoriesLoaded = await this.loadCategories()
+        if (!categoriesLoaded) return
+        const productsLoaded = await this.loadProducts()
+        if (productsLoaded) uni.showToast({ title: '商品数据已刷新', icon: 'success' })
+      } finally {
+        this.refreshing = false
+      }
     },
     coverImage(item) {
       return productImageUrl(item.coverImageUrl)
@@ -76,24 +90,18 @@ export default {
       item.coverImageUrl = ''
     },
     selectCategory(id) {
+      if (this.guestMode) return
       this.activeCategory = id
       this.loadProducts()
     },
     openDetail(product) {
+      if (this.guestMode) return
       uni.navigateTo({ url: `/src/pages/detail/index?id=${product.id}` })
     },
     goLogin() {
       exitGuest()
       showPageLoading()
       uni.reLaunch({ url: '/src/pages/login/index' })
-    },
-    plus(product) {
-      setCartQuantity(product, (this.cartMap[product.id] || 0) + 1)
-      this.cartMap = { ...this.cartMap, [product.id]: getCartQuantity(product.id) }
-    },
-    minus(product) {
-      setCartQuantity(product, (this.cartMap[product.id] || 0) - 1)
-      this.cartMap = { ...this.cartMap, [product.id]: getCartQuantity(product.id) }
     }
   }
 }
@@ -102,19 +110,26 @@ export default {
 <template>
   <view class="page-shell mall-page">
     <view class="card search-card">
-      <input v-model="keyword" class="search-input" placeholder="搜索商品" @confirm="loadProducts" />
-      <button class="mini-btn" @click="loadProducts">搜索</button>
+      <input
+        v-model="keyword"
+        class="search-input"
+        :disabled="guestMode"
+        :placeholder="guestMode ? '登录后可搜索商品' : '搜索商品'"
+        @confirm="loadProducts"
+      />
+      <button class="mini-btn" :disabled="guestMode" @click="loadProducts">搜索</button>
+      <button class="mini-btn refresh-btn" :disabled="guestMode || refreshing" @click="refreshProducts">{{ refreshing ? '刷新中' : '刷新' }}</button>
       <button v-if="guestMode" class="mini-btn secondary" @click="goLogin">账号登录</button>
     </view>
 
     <view class="mall-board">
       <view class="category-wrap">
-        <scroll-view scroll-y class="category-pane" enhanced="true" show-scrollbar="false">
+        <scroll-view scroll-y class="category-pane" show-scrollbar="false">
           <view
             v-for="item in categories"
             :key="item.id"
             class="category-item"
-            :class="{ active: activeCategory === item.id }"
+            :class="{ active: activeCategory === item.id, readonly: guestMode }"
             @click="selectCategory(item.id)"
           >
             {{ item.name }}
@@ -123,22 +138,22 @@ export default {
       </view>
 
       <view class="product-wrap">
-        <scroll-view scroll-y class="product-pane" enhanced="true" show-scrollbar="false">
-          <view v-for="item in products" :key="item.id" class="product-card" @click="openDetail(item)">
+        <scroll-view scroll-y class="product-pane" show-scrollbar="false">
+          <view
+            v-for="item in products"
+            :key="item.id"
+            class="product-card"
+            :class="{ readonly: guestMode }"
+            @click="openDetail(item)"
+          >
             <image v-if="item.coverImageUrl" :src="coverImage(item)" class="product-cover" mode="aspectFill" @error="clearFailedImage(item)" />
             <view v-else class="product-cover image-placeholder">暂无图片</view>
             <view class="product-body">
               <view class="product-name">{{ item.name }}</view>
               <view v-if="!guestMode" class="product-meta">
                 <text>{{ item.pointsCost }} 积分</text>
-                <text>库存 {{ item.stock }}</text>
-              </view>
-              <view v-if="!guestMode" class="action-line" @click.stop="">
-                <view class="stepper">
-                  <button class="icon-btn sub" :class="{ disabled: !cartMap[item.id] }" @click="minus(item)">-</button>
-                  <text class="count-text">{{ cartMap[item.id] || 0 }}</text>
-                  <button class="icon-btn add" @click="plus(item)">+</button>
-                </view>
+                <text v-if="Number(item.stock) > 0">剩余数量：{{ item.stock }}</text>
+                <text v-else class="sold-out">已售罄</text>
               </view>
             </view>
           </view>
@@ -182,6 +197,11 @@ export default {
   font-size: 24rpx;
 }
 
+.search-input[disabled] {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
 .mini-btn {
   height: 66rpx;
   line-height: 66rpx;
@@ -192,8 +212,27 @@ export default {
   padding: 0 22rpx;
 }
 
+.mini-btn[disabled] {
+  opacity: 0.46;
+}
+
 .mini-btn.secondary {
   background: #111827;
+}
+
+.mini-btn.refresh-btn {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1rpx solid #bfdbfe;
+  box-shadow: 0 6rpx 16rpx rgba(37, 99, 235, 0.08);
+}
+
+.mini-btn.refresh-btn::after {
+  border: 0;
+}
+
+.mini-btn.refresh-btn[disabled] {
+  opacity: 0.58;
 }
 
 .mall-board {
@@ -249,6 +288,10 @@ export default {
   font-weight: 700;
 }
 
+.category-item.readonly {
+  color: #94a3b8;
+}
+
 .product-card {
   display: flex;
   align-items: stretch;
@@ -260,6 +303,10 @@ export default {
   border-radius: 18rpx;
   background: #f8fafc;
   border: 2rpx solid #bfdbfe;
+}
+
+.product-card.readonly {
+  border-color: #e2e8f0;
 }
 
 .product-cover {
@@ -302,48 +349,8 @@ export default {
   margin-bottom: auto;
 }
 
-.action-line {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12rpx;
-}
-
-.stepper {
-  display: flex;
-  align-items: center;
-  gap: 10rpx;
-}
-
-.icon-btn {
-  width: 46rpx;
-  min-width: 46rpx;
-  height: 46rpx;
-  line-height: 46rpx;
-  padding: 0;
-  text-align: center;
-  border-radius: 50%;
-  font-size: 24rpx;
-}
-
-.icon-btn.add {
-  background: #2563eb;
-  color: #fff;
-}
-
-.icon-btn.sub {
-  background: #e2e8f0;
-  color: #0f172a;
-}
-
-.icon-btn.disabled {
-  opacity: 0.45;
-}
-
-.count-text {
-  min-width: 44rpx;
-  text-align: center;
-  font-size: 22rpx;
-  color: #0f172a;
+.sold-out {
+  color: #dc2626;
   font-weight: 700;
 }
 
